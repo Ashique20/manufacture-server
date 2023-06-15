@@ -85,6 +85,8 @@ app.post('/order', async (req, res) => {
 
 app.get('/order', async (req, res) => {
   const queryEmail = req.query.email;
+  const authorization = req.headers.authorization; 
+  console.log('auth',authorization)
   console.log(queryEmail)
   if (queryEmail) {
     const query = { email: queryEmail };
