@@ -26,6 +26,23 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 console.log(uri)
 
+function verifyJWT(req,res,next){
+  const authHeader = req.headers.auhorization;
+  if(!authHeader){
+    return res.status(401).send({message:'Unauthorized Access'})
+  }
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
+    if(err){
+      return res.status(403).send({message:'forbidden access'})
+    }
+    req.decoded = decoded;
+    next()
+    
+  });
+
+}
+
 async function run() {
   try {
     await client.connect();
@@ -83,15 +100,16 @@ app.post('/order', async (req, res) => {
   res.send(purchase)
 })
 
-app.get('/order', async (req, res) => {
+app.get('/order',verifyJWT, async (req, res) => {
   const queryEmail = req.query.email;
-  const authorization = req.headers.authorization; 
-  console.log('auth',authorization)
-  console.log(queryEmail)
-  if (queryEmail) {
+ const decodedEmail = req.decoded.email;
+  if (queryEmail === decodedEmail) {
     const query = { email: queryEmail };
     const order = await orderCollection.find(query).toArray();
     res.send(order)
+  }
+  else{
+    return res.status(403).send({message:'forbidden'})
   }
 
 })
