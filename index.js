@@ -34,8 +34,10 @@ function verifyJWT(req,res,next){
       )
   }
 
+  
+
   const token = authHeader.split(' ')[1];
-  jwt.verify(token, 'shhhhh', function(err, decoded) {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
    if(err){
     return res.status(403).send({message:'Forbidden Acess'})
    }
@@ -108,6 +110,7 @@ app.get('/order',verifyJWT, async (req, res) => {
   const queryEmail = req.query.email;
   console.log(queryEmail)
   const decodedEmail = req.decoded.email;
+  console.log(decodedEmail)
   if (queryEmail === decodedEmail) {
     const query = { email: queryEmail };
     const order = await orderCollection.find(query).toArray();
